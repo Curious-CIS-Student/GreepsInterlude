@@ -47,6 +47,7 @@ public class Greep extends Creature
         else {
             if (atShip()) {
                 setFlag(1, false); // We no longer need to tell others about the tomato pile we found.
+                setMemory(0); // We're no longer using the memory for the "going to ship" mode, so set to 0.
             }
             // We're heading back home because we found a tomato. It doesn't matter
             //  whether we're near another tomato or not. We need to let everyone know
@@ -63,7 +64,9 @@ public class Greep extends Creature
                 }
                 else { // We stumbled upon a tomato. Take the news to the ship!
                     setFlag(1, true);
+                    setMemory(1);
                 }
+                checkFood();
             }
             else { // Not near a tomato pile.
                 if (seePaint("purple")) {
@@ -78,36 +81,6 @@ public class Greep extends Creature
                 checkFood();
             }
         }
-    }
-
-    /**
-     * Private method to move home. If we run into a wall, then we will turn aside.
-     *  Otherwise, we will turn towards the ship.
-     */
-    private void moveHome() {
-        if (atWater() || atWorldEdge()) {
-            turn(45);
-            move();
-        }
-        else { // No obstacles present.
-            if (getFlag(1)) {
-                spit("purple");
-            }
-            move();
-            turnHome();
-        }
-    }
-    
-    /**
-     * Private method to check if there is a tomato where we are.
-     */
-    private boolean nearTomato() {
-        // check whether there's a tomato pile here
-        TomatoPile tomatoes = (TomatoPile) getOneIntersectingObject(TomatoPile.class);
-        if (tomatoes != null) {
-            return true;
-        }
-        return false;
     }
     
     /**
@@ -143,4 +116,49 @@ public class Greep extends Creature
         else
             return "greep.png";
     }
+
+    /**
+     * Private method to move home. If we run into a wall, then we will turn aside.
+     *  Otherwise, we will turn towards the ship.
+     */
+    private void moveHome() {
+        // Toggle the memory value (which indicates which color to paint in this mode.).
+        if (atWater() || atWorldEdge()) {
+            turn(45);
+            move();
+        }
+        else { // No obstacles present.     
+            spit("purple");
+            move();
+            turnHome();
+        }
+    }
+    
+        /**
+     * Private method to check if there is a tomato where we are.
+     */
+    private boolean nearTomato() {
+        // check whether there's a tomato pile here
+        TomatoPile tomatoes = (TomatoPile) getOneIntersectingObject(TomatoPile.class);
+        if (tomatoes != null) {
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Toggles the memory value. If the value is 0, then it is set to 1. Otherwise,
+     * the memory value rotates between 1, 2, and 3.
+     */
+    private void toggleMessageMemory()
+    {
+        int currentMemory = getMemory();
+        if (currentMemory == 0) {
+            setMemory(1);
+        }
+        else {// Value currentMemory < 0
+            setMemory((currentMemory%3) + 1); // Equation toggles memory between 1, 2, and 3.
+        }
+    }
+    
 }
